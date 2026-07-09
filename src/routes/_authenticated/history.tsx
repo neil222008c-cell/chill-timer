@@ -41,7 +41,7 @@ function HistoryPage() {
   if (!data?.length)
     return (
       <div className="rounded-2xl border border-dashed border-border p-16 text-center text-muted-foreground">
-        No saved picks yet. Head to <span className="text-primary">Pick</span> to find one.
+        No saved picks yet. Head to <span className="text-primary">AI search</span> to find one.
       </div>
     );
 
@@ -56,6 +56,16 @@ function HistoryPage() {
             key={r.id}
             className="flex flex-col gap-4 rounded-2xl border border-border bg-card/60 p-5 md:flex-row md:items-center"
           >
+            {r.poster_url ? (
+              <img
+                src={r.poster_url}
+                alt={`Poster for ${r.title}`}
+                className="h-24 w-16 flex-shrink-0 rounded-md object-cover shadow-md"
+                loading="lazy"
+              />
+            ) : (
+              <div className="h-24 w-16 flex-shrink-0 rounded-md border border-border bg-muted/30" />
+            )}
             <div className="flex-1">
               <div className="flex flex-wrap items-baseline gap-2">
                 <h3 className="font-display text-xl">{r.title}</h3>

@@ -62,6 +62,7 @@ function PickPage() {
           runtime_minutes: pick.runtime_minutes,
           genre: pick.genre,
           why_it_fits: pick.why_it_fits,
+          poster_url: pick.poster_url,
           mood,
           time_available: minutes,
           energy,
@@ -149,25 +150,50 @@ function PickPage() {
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
-              className="rounded-3xl border border-border bg-card/70 p-8 shadow-ember backdrop-blur"
+              className="overflow-hidden rounded-3xl border border-border bg-card/70 shadow-ember backdrop-blur"
             >
-              <div className="text-xs uppercase tracking-widest text-primary">Tonight's pick</div>
-              <h2 className="mt-2 font-display text-4xl leading-tight">{pick.title}</h2>
-              <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
-                <span>{pick.year}</span>
-                <span>·</span>
-                <span>{pick.runtime_minutes} min</span>
-                <span>·</span>
-                <span className="capitalize">{pick.genre}</span>
-              </div>
-              <p className="mt-6 leading-relaxed text-foreground/90">{pick.why_it_fits}</p>
-              <div className="mt-8 flex gap-3">
-                <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending} variant="secondary">
-                  <Save className="mr-2 h-4 w-4" /> Save
-                </Button>
-                <Button onClick={() => pickMut.mutate()} disabled={pickMut.isPending} variant="outline">
-                  Not it — try another
-                </Button>
+              {pick.poster_url ? (
+                <div className="relative aspect-[16/9] w-full overflow-hidden bg-black">
+                  <img
+                    src={pick.poster_url}
+                    alt={`Poster for ${pick.title}`}
+                    className="h-full w-full object-cover opacity-90"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
+                </div>
+              ) : null}
+              <div className="p-8">
+                <div className="flex gap-6">
+                  {pick.poster_url ? (
+                    <img
+                      src={pick.poster_url}
+                      alt={`Poster for ${pick.title}`}
+                      className="hidden h-40 w-28 flex-shrink-0 rounded-lg object-cover shadow-lg sm:block"
+                      loading="lazy"
+                    />
+                  ) : null}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs uppercase tracking-widest text-primary">Tonight's pick</div>
+                    <h2 className="mt-2 font-display text-4xl leading-tight">{pick.title}</h2>
+                    <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
+                      <span>{pick.year}</span>
+                      <span>·</span>
+                      <span>{pick.runtime_minutes} min</span>
+                      <span>·</span>
+                      <span className="capitalize">{pick.genre}</span>
+                    </div>
+                    <p className="mt-6 leading-relaxed text-foreground/90">{pick.why_it_fits}</p>
+                    <div className="mt-8 flex gap-3">
+                      <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending} variant="secondary">
+                        <Save className="mr-2 h-4 w-4" /> Save
+                      </Button>
+                      <Button onClick={() => pickMut.mutate()} disabled={pickMut.isPending} variant="outline">
+                        Not it — try another
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
           ) : (
