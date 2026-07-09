@@ -1,0 +1,1 @@
+ALTER TABLE public.recommendations ADD COLUMN IF NOT EXISTS poster_url TEXT;
