@@ -9,7 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export const Route = _crf("/_authenticated/app")({
+export const Route = createFileRoute("/_authenticated/app")({
   component: PickPage,
   head: () => ({ meta: [{ title: "Pick a film — Dimlight" }] }),
 });
