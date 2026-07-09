@@ -20,6 +20,28 @@ interface Pick {
   runtime_minutes: number;
   genre: string;
   why_it_fits: string;
+  poster_url: string | null;
+}
+
+// Fetch a poster from iTunes Search API (no key needed, CORS-friendly).
+async function fetchPoster(title: string, year?: number): Promise<string | null> {
+  try {
+    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(title)}&media=movie&limit=5`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const json = (await res.json()) as { results?: Array<{ artworkUrl100?: string; releaseDate?: string }> };
+    const results = json.results ?? [];
+    let best = results[0];
+    if (year) {
+      const match = results.find((r) => r.releaseDate?.startsWith(String(year)));
+      if (match) best = match;
+    }
+    if (!best?.artworkUrl100) return null;
+    // Upscale from 100x100 → 600x600
+    return best.artworkUrl100.replace(/\/\d+x\d+bb\.jpg$/, "/600x600bb.jpg");
+  } catch {
+    return null;
+  }
 }
 
 export const pickMovie = createServerFn({ method: "POST" })
@@ -36,7 +58,7 @@ export const pickMovie = createServerFn({ method: "POST" })
       ? `Do NOT suggest any of: ${data.exclude.join(", ")}.`
       : "";
 
-    const result = await callAI<Pick>({
+    const result = await callAI<Omit<Pick, "poster_url">>({
       messages: [
         {
           role: "system",
@@ -69,7 +91,9 @@ Return one movie.`,
       },
     });
 
-    return result as Pick;
+    const pick = result as Omit<Pick, "poster_url">;
+    const poster_url = await fetchPoster(pick.title, pick.year);
+    return { ...pick, poster_url } satisfies Pick;
   });
 
 // --- Save (CRUD Create) ---
@@ -79,6 +103,7 @@ const SaveInput = z.object({
   runtime_minutes: z.number().int().nullable().optional(),
   genre: z.string().nullable().optional(),
   why_it_fits: z.string().nullable().optional(),
+  poster_url: z.string().nullable().optional(),
   mood: MoodEnum,
   time_available: z.number().int().nullable().optional(),
   energy: EnergyEnum.nullable().optional(),

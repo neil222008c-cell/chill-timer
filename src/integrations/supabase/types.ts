@@ -45,6 +45,7 @@ export type Database = {
           genre: string | null
           id: string
           mood: string
+          poster_url: string | null
           rating: number | null
           runtime_minutes: number | null
           time_available: number | null
@@ -61,6 +62,7 @@ export type Database = {
           genre?: string | null
           id?: string
           mood: string
+          poster_url?: string | null
           rating?: number | null
           runtime_minutes?: number | null
           time_available?: number | null
@@ -77,6 +79,7 @@ export type Database = {
           genre?: string | null
           id?: string
           mood?: string
+          poster_url?: string | null
           rating?: number | null
           runtime_minutes?: number | null
           time_available?: number | null

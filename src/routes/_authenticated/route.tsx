@@ -2,7 +2,16 @@ import { createFileRoute, Outlet, Link, useNavigate, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
-import { Film, History, BarChart3, LogOut } from "lucide-react";
+import { Sparkles, History, BarChart3, LogOut, User } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -23,10 +32,12 @@ function AuthedLayout() {
   }
 
   const nav_items = [
-    { to: "/app", label: "Pick", icon: Film },
+    { to: "/app", label: "AI search", icon: Sparkles },
     { to: "/history", label: "History", icon: History },
     { to: "/analytics", label: "Analytics", icon: BarChart3 },
   ] as const;
+
+  const initial = (user.email ?? "?").charAt(0).toUpperCase();
 
   return (
     <div className="min-h-screen bg-background">
@@ -53,12 +64,40 @@ function AuthedLayout() {
               );
             })}
           </nav>
-          <div className="flex items-center gap-3">
-            <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
-            <Button variant="ghost" size="icon" onClick={async () => { await signOut(); nav({ to: "/auth", replace: true }); }}>
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="flex items-center gap-2 rounded-full border border-border bg-card/60 py-1 pl-1 pr-3 transition hover:border-primary/40"
+                aria-label="Profile menu"
+              >
+                <Avatar className="h-7 w-7">
+                  <AvatarFallback className="bg-primary/20 text-xs text-primary">{initial}</AvatarFallback>
+                </Avatar>
+                <span className="hidden max-w-[180px] truncate text-xs text-muted-foreground sm:inline">
+                  {user.email}
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="flex items-center gap-2">
+                <User className="h-4 w-4 text-primary" />
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">Signed in as</span>
+                  <span className="truncate text-sm">{user.email}</span>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={async () => {
+                  await signOut();
+                  nav({ to: "/auth", replace: true });
+                }}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <nav className="flex justify-around border-t border-border py-2 md:hidden">
           {nav_items.map((n) => (
