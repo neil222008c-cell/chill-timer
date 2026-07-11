@@ -2,8 +2,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Zap, Moon, Coffee, Sparkles, Save } from "lucide-react";
+import { Clock, Zap, Moon, Coffee, Sparkles, Save, Mail } from "lucide-react";
 import { pickMovie, saveRecommendation } from "@/lib/recommendations.functions";
+import { emailPick } from "@/lib/email.functions";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
@@ -34,6 +35,25 @@ function PickPage() {
 
   const pickFn = useServerFn(pickMovie);
   const saveFn = useServerFn(saveRecommendation);
+  const emailFn = useServerFn(emailPick);
+
+  const emailMut = useMutation({
+    mutationFn: () => {
+      if (!pick) throw new Error("No pick");
+      return emailFn({
+        data: {
+          title: pick.title,
+          year: pick.year,
+          runtime_minutes: pick.runtime_minutes,
+          genre: pick.genre,
+          why_it_fits: pick.why_it_fits,
+          poster_url: pick.poster_url,
+        },
+      });
+    },
+    onSuccess: (r) => toast.success(`Emailed to ${r.to}`),
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const pickMut = useMutation({
     mutationFn: () =>
@@ -184,9 +204,13 @@ function PickPage() {
                       <span className="capitalize">{pick.genre}</span>
                     </div>
                     <p className="mt-6 leading-relaxed text-foreground/90">{pick.why_it_fits}</p>
-                    <div className="mt-8 flex gap-3">
+                    <div className="mt-8 flex flex-wrap gap-3">
                       <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending} variant="secondary">
                         <Save className="mr-2 h-4 w-4" /> Save
+                      </Button>
+                      <Button onClick={() => emailMut.mutate()} disabled={emailMut.isPending} variant="secondary">
+                        <Mail className="mr-2 h-4 w-4" />
+                        {emailMut.isPending ? "Sending…" : "Email me this pick"}
                       </Button>
                       <Button onClick={() => pickMut.mutate()} disabled={pickMut.isPending} variant="outline">
                         Not it — try another
