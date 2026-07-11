@@ -9,26 +9,37 @@ export async function callAI<T = unknown>(opts: {
   model?: string;
   jsonSchema?: { name: string; schema: Record<string, unknown> };
 }): Promise<T | string> {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("LOVABLE_API_KEY missing");
+  const key = process.env.GROQ_API_KEY || process.env.LOVABLE_API_KEY;
+  if (!key) throw new Error("GROQ_API_KEY missing");
+
+  const useGroq = !!process.env.GROQ_API_KEY;
+  const url = useGroq
+    ? "https://api.groq.com/openai/v1/chat/completions"
+    : "https://ai.gateway.lovable.dev/v1/chat/completions";
 
   const body: Record<string, unknown> = {
-    model: opts.model ?? "google/gemini-3-flash-preview",
+    model: opts.model ?? (useGroq ? "llama-3.3-70b-versatile" : "google/gemini-3-flash-preview"),
     messages: opts.messages,
   };
   if (opts.jsonSchema) {
-    body.response_format = {
-      type: "json_schema",
-      json_schema: { name: opts.jsonSchema.name, schema: opts.jsonSchema.schema, strict: false },
-    };
+    if (useGroq) {
+      // Groq supports JSON object mode reliably; ask for JSON in the system message.
+      body.response_format = { type: "json_object" };
+    } else {
+      body.response_format = {
+        type: "json_schema",
+        json_schema: { name: opts.jsonSchema.name, schema: opts.jsonSchema.schema, strict: false },
+      };
+    }
   }
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (useGroq) headers["Authorization"] = `Bearer ${key}`;
+  else headers["Lovable-API-Key"] = key;
+
+  const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Lovable-API-Key": key,
-    },
+    headers,
     body: JSON.stringify(body),
   });
 
