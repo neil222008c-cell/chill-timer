@@ -12,4 +12,12 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // The Lovable config defaults to a Cloudflare Workers build (wrangler.json output),
+  // which Vercel cannot run. Overriding the preset here makes `vite build` emit a
+  // Vercel-native Build Output API v3 bundle (.vercel/output) so Vercel actually
+  // runs the SSR server (routing, auth callback handling, etc.) instead of only
+  // serving static files.
+  nitro: {
+    preset: "vercel",
+  },
 });
